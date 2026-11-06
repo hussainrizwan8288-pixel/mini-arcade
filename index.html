@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Free Mini Arcade - Aviator & Spin</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #121212;
+            color: #ffffff;
+            margin: 0;
+            padding: 0;
+            text-align: center;
+        }
+        header {
+            background: #1f1f1f;
+            padding: 20px;
+            border-bottom: 2px solid #333;
+        }
+        h1 { margin: 0; color: #00ffcc; }
+        .balance-box {
+            margin-top: 10px;
+            font-size: 18px;
+            color: #ffcc00;
+        }
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 30px;
+            padding: 30px;
+        }
+        .game-card {
+            background: #1e1e1e;
+            border: 1px solid #333;
+            border-radius: 10px;
+            padding: 20px;
+            width: 350px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+        }
+        /* Crash Game Styles */
+        #crash-canvas {
+            background: #000;
+            border-radius: 5px;
+            border: 1px solid #444;
+        }
+        /* Wheel Game Styles */
+        #wheel-container {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            margin: 20px auto;
+            border-radius: 50%;
+            border: 5px solid #00ffcc;
+            transition: transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99);
+            background: conic-gradient(#ff4444 0deg 90deg, #ffbb00 90deg 180deg, #00cc44 180deg 270deg, #0088ff 270deg 360deg);
+        }
+        button {
+            background: #00ffcc;
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        button:hover { background: #00b399; }
+        button:disabled { background: #555; cursor: not-allowed; }
+        input {
+            padding: 8px;
+            width: 80px;
+            background: #2a2a2a;
+            color: white;
+            border: 1px solid #555;
+            border-radius: 4px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>🎮 Ultimate Free Arcade</h1>
+        <div class="balance-box">Virtual Balance: 🪙 <span id="balance">1000</span> Coins</div>
+    </header>
+
+    <div class="container">
+        <!-- AVIATOR STYLE CRASH GAME -->
+        <div class="game-card">
+            <h2>Crash Multiplier</h2>
+            <canvas id="crash-canvas" width="300" height="200"></canvas>
+            <p id="crash-status" style="font-size: 20px; font-weight: bold; color: #00ffcc;">1.00x</p>
+            <div>
+                <label>Bet: </label><input type="number" id="bet-amount" value="50" min="10">
+            </div>
+            <button id="crash-btn" onclick="startCrashGame()">Place Bet & Fly</button>
+        </div>
+
+        <!-- SPIN AND WIN GAME -->
+        <div class="game-card">
+            <h2>Spin & Win</h2>
+            <div id="wheel-container"></div>
+            <p id="wheel-result">Spin to win coins!</p>
+            <button id="spin-btn" onclick="spinWheel()">Spin Wheel (Cost: 50)</button>
+        </div>
+    </div>
+
+    <script>
+        let balance = 1000;
+        function updateBalance() {
+            document.getElementById('balance').innerText = balance;
+        }
+
+        /* --- CRASH GAME LOGIC --- */
+        let crashInterval;
+        let currentMultiplier = 1.00;
+        let isPlayingCrash = false;
+
+        function startCrashGame() {
+            let bet = parseInt(document.getElementById('bet-amount').value);
+            if (bet > balance || bet <= 0) {
+                alert("Invalid bet amount!");
+                return;
+            }
+            balance -= bet;
+            updateBalance();
+
+            let btn = document.getElementById('crash-btn');
+            btn.innerText = "Cash Out";
+            btn.setAttribute("onclick", "cashOut()");
+            
+            currentMultiplier = 1.00;
+            isPlayingCrash = true;
+            let crashPoint = (Math.random() * 3 + 1.1).toFixed(2); // Random crash between 1.1x and 4.1x
+
+            let canvas = document.getElementById('crash-canvas');
+            let ctx = canvas.getContext('2d');
+
+            crashInterval = setInterval(() => {
+                currentMultiplier += 0.03;
+                document.getElementById('crash-status').innerText = currentMultiplier.toFixed(2) + 'x';
+                
+                // Draw graph animation
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.strokeStyle = "#00ffcc";
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.moveTo(0, canvas.height);
+                ctx.lineTo(canvas.width * (currentMultiplier / 5), canvas.height - (canvas.height * (currentMultiplier / 5)));
+                ctx.stroke();
+
+                if (currentMultiplier >= crashPoint && isPlayingCrash) {
+                    endCrashGame(false, 0);
+                }
+            }, 100);
+        }
+
+        function cashOut() {
+            if (!isPlayingCrash) return;
+            let bet = parseInt(document.getElementById('bet-amount').value);
+            let winnings = Math.floor(bet * currentMultiplier);
+            endCrashGame(true, winnings);
+        }
+
+        function endCrashGame(won, winnings) {
+            clearInterval(crashInterval);
+            isPlayingCrash = false;
+            let statusText = document.getElementById('crash-status');
+            let btn = document.getElementById('crash-btn');
+
+            if (won) {
+                balance += winnings;
+                statusText.innerHTML = `<span style="color: #00cc44;">Cashed out! Won +${winnings}</span>`;
+            } else {
+                statusText.innerHTML = `<span style="color: #ff4444;">CRASHED at ${currentMultiplier.toFixed(2)}x</span>`;
+            }
+            updateBalance();
+
+            btn.innerText = "Place Bet & Fly";
+            btn.setAttribute("onclick", "startCrashGame()");
+        }
+
+        /* --- SPIN WHEEL LOGIC --- */
+        let currentRotation = 0;
+        function spinWheel() {
+            if (balance < 50) {
+                alert("Not enough coins to spin!");
+                return;
+            }
+            balance -= 50;
+            updateBalance();
+
+            let spinBtn = document.getElementById('spin-btn');
+            spinBtn.disabled = true;
+
+            let randomDegree = Math.floor(Math.random() * 360) + 1440; // At least 4 full rotations
+            currentRotation += randomDegree;
+            
+            let wheel = document.getElementById('wheel-container');
+            wheel.style.transform = `rotate(${currentRotation}deg)`;
+
+            setTimeout(() => {
+                // Determine reward based on final degrees modulo 360
+                let normalizedDegree = currentRotation % 360;
+                let prize = 0;
+                if (normalizedDegree < 90) prize = 100;       // Green zone
+                else if (normalizedDegree < 180) prize = 0;    // Red zone
+                else if (normalizedDegree < 270) prize = 200;  // Blue zone
+                else prize = 50;                               // Yellow zone
+
+                balance += prize;
+                updateBalance();
+                document.getElementById('wheel-result').innerText = `You won ${prize} coins!`;
+                spinBtn.disabled = false;
+            }, 4000);
+        }
+    </script>
+</body>
+</html>
