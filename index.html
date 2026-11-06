@@ -3,220 +3,457 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Free Mini Arcade - Aviator & Spin</title>
+    <title>Ultimate Arcade Hub - 10 Games</title>
     <style>
+        :root {
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --accent: #00ffcc;
+            --text: #ffffff;
+            --secondary: #2a2a2a;
+        }
         body {
             font-family: Arial, sans-serif;
-            background-color: #121212;
-            color: #ffffff;
+            background-color: var(--bg-color);
+            color: var(--text);
             margin: 0;
             padding: 0;
             text-align: center;
         }
         header {
-            background: #1f1f1f;
-            padding: 20px;
+            background: var(--card-bg);
+            padding: 15px 30px;
             border-bottom: 2px solid #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
         }
-        h1 { margin: 0; color: #00ffcc; }
+        h1 { margin: 0; color: var(--accent); font-size: 24px; }
+        .nav-links button {
+            background: transparent;
+            color: var(--text);
+            border: 1px solid var(--accent);
+            padding: 6px 12px;
+            margin-left: 5px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .nav-links button:hover, .nav-links button.active {
+            background: var(--accent);
+            color: #000;
+        }
         .balance-box {
-            margin-top: 10px;
-            font-size: 18px;
+            font-size: 16px;
             color: #ffcc00;
+            font-weight: bold;
         }
         .container {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 30px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 20px;
             padding: 30px;
+            max-width: 1200px;
+            margin: auto;
         }
         .game-card {
-            background: #1e1e1e;
+            background: var(--card-bg);
             border: 1px solid #333;
             border-radius: 10px;
             padding: 20px;
-            width: 350px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
         }
-        /* Crash Game Styles */
-        #crash-canvas {
-            background: #000;
-            border-radius: 5px;
-            border: 1px solid #444;
-        }
-        /* Wheel Game Styles */
-        #wheel-container {
-            position: relative;
-            width: 200px;
-            height: 200px;
-            margin: 20px auto;
-            border-radius: 50%;
-            border: 5px solid #00ffcc;
-            transition: transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99);
-            background: conic-gradient(#ff4444 0deg 90deg, #ffbb00 90deg 180deg, #00cc44 180deg 270deg, #0088ff 270deg 360deg);
-        }
-        button {
-            background: #00ffcc;
+        .game-card h3 { margin-top: 0; color: var(--accent); }
+        button.action-btn {
+            background: var(--accent);
             color: #000;
             border: none;
-            padding: 10px 20px;
-            font-size: 16px;
+            padding: 10px;
+            font-size: 15px;
             font-weight: bold;
             border-radius: 5px;
             cursor: pointer;
             margin-top: 10px;
+            width: 100%;
         }
-        button:hover { background: #00b399; }
-        button:disabled { background: #555; cursor: not-allowed; }
-        input {
+        button.action-btn:hover { background: #00b399; }
+        button:disabled { background: #555 !important; cursor: not-allowed; color: #aaa; }
+        input, select {
             padding: 8px;
-            width: 80px;
-            background: #2a2a2a;
+            width: calc(100% - 20px);
+            background: var(--secondary);
             color: white;
             border: 1px solid #555;
             border-radius: 4px;
             text-align: center;
+            margin: 5px 0;
+        }
+        .hidden { display: none !important; }
+        
+        /* Specific Game Layouts */
+        #wheel-container {
+            position: relative;
+            width: 150px;
+            height: 150px;
+            margin: 10px auto;
+            border-radius: 50%;
+            border: 4px solid var(--accent);
+            transition: transform 3s cubic-bezier(0.17, 0.67, 0.12, 0.99);
+            background: conic-gradient(#ff4444 0deg 90deg, #ffbb00 90deg 180deg, #00cc44 180deg 270deg, #0088ff 270deg 360deg);
+        }
+        canvas { background: #000; border-radius: 5px; margin: 5px auto; display: block; }
+        .result-text { font-weight: bold; margin: 8px 0; min-height: 20px; }
+        
+        /* Admin Panel Styling */
+        #admin-panel {
+            max-width: 600px;
+            margin: 40px auto;
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 10px;
+            border: 2px solid #ffcc00;
+            text-align: left;
         }
     </style>
 </head>
 <body>
 
     <header>
-        <h1>🎮 Ultimate Free Arcade</h1>
-        <div class="balance-box">Virtual Balance: 🪙 <span id="balance">1000</span> Coins</div>
+        <h1>🎮 Arcade Hub Pro</h1>
+        <div class="balance-box">Balance: 🪙 <span id="balance">1000</span> Coins</div>
+        <div class="nav-links">
+            <button onclick="switchTab('arcade')" id="nav-arcade" class="active">Games</button>
+            <button onclick="switchTab('admin')" id="nav-admin">Admin Panel</button>
+        </div>
     </header>
 
-    <div class="container">
-        <!-- AVIATOR STYLE CRASH GAME -->
+    <!-- MAIN ARCADE SECTION -->
+    <div id="arcade-section" class="container">
+        
+        <!-- GAME 1: CRASH MULTIPLIER -->
         <div class="game-card">
-            <h2>Crash Multiplier</h2>
-            <canvas id="crash-canvas" width="300" height="200"></canvas>
-            <p id="crash-status" style="font-size: 20px; font-weight: bold; color: #00ffcc;">1.00x</p>
-            <div>
-                <label>Bet: </label><input type="number" id="bet-amount" value="50" min="10">
-            </div>
-            <button id="crash-btn" onclick="startCrashGame()">Place Bet & Fly</button>
+            <h3>1. Sky Crash</h3>
+            <canvas id="crash-canvas" width="260" height="130"></canvas>
+            <p id="crash-status" class="result-text" style="color: var(--accent);">1.00x</p>
+            <input type="number" id="bet-crash" value="50" min="10">
+            <button class="action-btn" id="crash-btn" onclick="startCrash()">Place Bet & Fly</button>
         </div>
 
-        <!-- SPIN AND WIN GAME -->
+        <!-- GAME 2: SPIN WHEEL -->
         <div class="game-card">
-            <h2>Spin & Win</h2>
+            <h3>2. Spin & Win</h3>
             <div id="wheel-container"></div>
-            <p id="wheel-result">Spin to win coins!</p>
-            <button id="spin-btn" onclick="spinWheel()">Spin Wheel (Cost: 50)</button>
+            <p id="wheel-result" class="result-text">Spin for rewards!</p>
+            <button class="action-btn" id="spin-btn" onclick="spinWheel()">Spin Wheel (Cost: 50)</button>
+        </div>
+
+        <!-- GAME 3: COIN TOSS -->
+        <div class="game-card">
+            <h3>3. Coin Flip</h3>
+            <p class="result-text" id="coin-result">Pick Heads or Tails</p>
+            <select id="coin-choice">
+                <option value="heads">Heads</option>
+                <option value="tails">Tails</option>
+            </select>
+            <input type="number" id="bet-coin" value="50">
+            <button class="action-btn" onclick="playCoinFlip()">Flip Coin</button>
+        </div>
+
+        <!-- GAME 4: LUCKY DICE -->
+        <div class="game-card">
+            <h3>4. Dice Roll</h3>
+            <p class="result-text" id="dice-result">Guess if Roll > 3</p>
+            <input type="number" id="bet-dice" value="50">
+            <button class="action-btn" onclick="playDice()">Roll Dice (> 3 Wins)</button>
+        </div>
+
+        <!-- GAME 5: NUMBER SLOTS -->
+        <div class="game-card">
+            <h3>5. Lucky Slots</h3>
+            <h2 id="slots-display" style="letter-spacing: 15px; color: #ffcc00; margin: 10px 0;">7 7 7</h2>
+            <p class="result-text" id="slots-result">Match 3 numbers!</p>
+            <input type="number" id="bet-slots" value="50">
+            <button class="action-btn" onclick="playSlots()">Spin Slots</button>
+        </div>
+
+        <!-- GAME 6: HIGHER OR LOWER -->
+        <div class="game-card">
+            <h3>6. Higher / Lower</h3>
+            <p class="result-text" id="hl-display">Card: <span id="hl-card" style="color:#ffcc00; font-size:20px;">7</span></p>
+            <input type="number" id="bet-hl" value="50">
+            <button class="action-btn" onclick="playHighLower('higher')">Guess Higher 🔼</button>
+            <button class="action-btn" style="background:#ff4444;" onclick="playHighLower('lower')">Guess Lower 🔽</button>
+        </div>
+
+        <!-- GAME 7: COLOR PREDICTOR -->
+        <div class="game-card">
+            <h3>7. Color Match</h3>
+            <p class="result-text" id="color-result">Pick a winning color</p>
+            <select id="color-choice">
+                <option value="red">Red (2x)</option>
+                <option value="green">Green (4x)</option>
+                <option value="blue">Blue (2x)</option>
+            </select>
+            <input type="number" id="bet-color" value="50">
+            <button class="action-btn" onclick="playColor()">Play Color Game</button>
+        </div>
+
+        <!-- GAME 8: PENALTY KICK -->
+        <div class="game-card">
+            <h3>8. Penalty Shootout</h3>
+            <p class="result-text" id="penalty-result">Choose where to shoot</p>
+            <select id="penalty-choice">
+                <option value="left">Left Corner</option>
+                <option value="center">Center</option>
+                <option value="right">Right Corner</option>
+            </select>
+            <input type="number" id="bet-penalty" value="50">
+            <button class="action-btn" onclick="playPenalty()">Shoot Penalty</button>
+        </div>
+
+        <!-- GAME 9: MINI BLACKJACK -->
+        <div class="game-card">
+            <h3>9. Mini Blackjack</h3>
+            <p class="result-text" id="bj-result">You: <span id="bj-score">0</span></p>
+            <input type="number" id="bet-bj" value="50">
+            <button class="action-btn" onclick="startBlackjack()">Deal Card</button>
+        </div>
+
+        <!-- GAME 10: LUCKY CARD DRAW -->
+        <div class="game-card">
+            <h3>10. High Card Draw</h3>
+            <p class="result-text" id="card-result">Draw higher than the dealer's card</p>
+            <input type="number" id="bet-card" value="50">
+            <button class="action-btn" onclick="playCardDraw()">Draw Card</button>
+        </div>
+
+    </div>
+
+    <!-- ADMIN PANEL SECTION -->
+    <div id="admin-section" class="container hidden">
+        <div id="admin-panel">
+            <h2>🔐 Admin Control Panel</h2>
+            <div id="admin-login-box">
+                <p>Enter Admin Password (Default: <code>admin123</code>):</p>
+                <input type="password" id="admin-pass" placeholder="Password">
+                <button class="action-btn" onclick="loginAdmin()">Login</button>
+            </div>
+            <div id="admin-controls" class="hidden">
+                <p style="color: #00cc44; font-weight: bold;">Status: Logged In as Administrator</p>
+                <hr style="border-color: #444;">
+                <h3>Player Account Controls</h3>
+                <label>Modify User Balance:</label>
+                <input type="number" id="admin-new-balance" value="1000">
+                <button class="action-btn" onclick="adminSetBalance()">Set Balance</button>
+                <br>
+                <button class="action-btn" style="background:#ff4444;" onclick="adminResetData()">Reset All Game Stats</button>
+            </div>
         </div>
     </div>
 
     <script>
         let balance = 1000;
-        function updateBalance() {
+        function updateUI() {
             document.getElementById('balance').innerText = balance;
         }
 
-        /* --- CRASH GAME LOGIC --- */
-        let crashInterval;
-        let currentMultiplier = 1.00;
-        let isPlayingCrash = false;
+        function switchTab(tab) {
+            document.getElementById('nav-arcade').classList.remove('active');
+            document.getElementById('nav-admin').classList.remove('active');
+            document.getElementById('arcade-section').classList.add('hidden');
+            document.getElementById('admin-section').classList.add('hidden');
 
-        function startCrashGame() {
-            let bet = parseInt(document.getElementById('bet-amount').value);
-            if (bet > balance || bet <= 0) {
-                alert("Invalid bet amount!");
-                return;
+            if(tab === 'arcade') {
+                document.getElementById('nav-arcade').classList.add('active');
+                document.getElementById('arcade-section').classList.remove('hidden');
+            } else {
+                document.getElementById('nav-admin').classList.add('active');
+                document.getElementById('admin-section').classList.remove('hidden');
             }
-            balance -= bet;
-            updateBalance();
+        }
+
+        /* 1. CRASH GAME */
+        let crashInterval, currentMultiplier = 1.00, isPlayingCrash = false;
+        function startCrash() {
+            let bet = parseInt(document.getElementById('bet-crash').value);
+            if(bet > balance || bet <= 0) return alert("Invalid bet!");
+            balance -= bet; updateUI();
 
             let btn = document.getElementById('crash-btn');
-            btn.innerText = "Cash Out";
-            btn.setAttribute("onclick", "cashOut()");
-            
-            currentMultiplier = 1.00;
-            isPlayingCrash = true;
-            let crashPoint = (Math.random() * 3 + 1.1).toFixed(2); // Random crash between 1.1x and 4.1x
-
-            let canvas = document.getElementById('crash-canvas');
-            let ctx = canvas.getContext('2d');
+            btn.innerText = "Cash Out"; btn.setAttribute("onclick", "cashOutCrash()");
+            currentMultiplier = 1.00; isPlayingCrash = true;
+            let crashPoint = (Math.random() * 3 + 1.1).toFixed(2);
+            let ctx = document.getElementById('crash-canvas').getContext('2d');
 
             crashInterval = setInterval(() => {
-                currentMultiplier += 0.03;
+                currentMultiplier += 0.04;
                 document.getElementById('crash-status').innerText = currentMultiplier.toFixed(2) + 'x';
-                
-                // Draw graph animation
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                ctx.strokeStyle = "#00ffcc";
-                ctx.lineWidth = 3;
-                ctx.beginPath();
-                ctx.moveTo(0, canvas.height);
-                ctx.lineTo(canvas.width * (currentMultiplier / 5), canvas.height - (canvas.height * (currentMultiplier / 5)));
+                ctx.clearRect(0, 0, 260, 130);
+                ctx.strokeStyle = "#00ffcc"; ctx.lineWidth = 2;
+                ctx.beginPath(); ctx.moveTo(0, 130);
+                ctx.lineTo(260 * (currentMultiplier/5), 130 - (130 * (currentMultiplier/5)));
                 ctx.stroke();
 
-                if (currentMultiplier >= crashPoint && isPlayingCrash) {
-                    endCrashGame(false, 0);
-                }
+                if(currentMultiplier >= crashPoint && isPlayingCrash) endCrash(false, 0);
             }, 100);
         }
-
-        function cashOut() {
-            if (!isPlayingCrash) return;
-            let bet = parseInt(document.getElementById('bet-amount').value);
+        function cashOutCrash() {
+            if(!isPlayingCrash) return;
+            let bet = parseInt(document.getElementById('bet-crash').value);
             let winnings = Math.floor(bet * currentMultiplier);
-            endCrashGame(true, winnings);
+            endCrash(true, winnings);
         }
-
-        function endCrashGame(won, winnings) {
-            clearInterval(crashInterval);
-            isPlayingCrash = false;
-            let statusText = document.getElementById('crash-status');
+        function endCrash(won, winnings) {
+            clearInterval(crashInterval); isPlayingCrash = false;
+            let status = document.getElementById('crash-status');
             let btn = document.getElementById('crash-btn');
-
-            if (won) {
+            if(won) {
                 balance += winnings;
-                statusText.innerHTML = `<span style="color: #00cc44;">Cashed out! Won +${winnings}</span>`;
+                status.innerHTML = `<span style="color:#00cc44;">Won +${winnings} coins!</span>`;
             } else {
-                statusText.innerHTML = `<span style="color: #ff4444;">CRASHED at ${currentMultiplier.toFixed(2)}x</span>`;
+                status.innerHTML = `<span style="color:#ff4444;">Crashed at ${currentMultiplier.toFixed(2)}x</span>`;
             }
-            updateBalance();
-
-            btn.innerText = "Place Bet & Fly";
-            btn.setAttribute("onclick", "startCrashGame()");
+            updateUI();
+            btn.innerText = "Place Bet & Fly"; btn.setAttribute("onclick", "startCrash()");
         }
 
-        /* --- SPIN WHEEL LOGIC --- */
+        /* 2. SPIN WHEEL */
         let currentRotation = 0;
         function spinWheel() {
-            if (balance < 50) {
-                alert("Not enough coins to spin!");
-                return;
-            }
-            balance -= 50;
-            updateBalance();
-
-            let spinBtn = document.getElementById('spin-btn');
-            spinBtn.disabled = true;
-
-            let randomDegree = Math.floor(Math.random() * 360) + 1440; // At least 4 full rotations
-            currentRotation += randomDegree;
-            
-            let wheel = document.getElementById('wheel-container');
-            wheel.style.transform = `rotate(${currentRotation}deg)`;
-
+            if(balance < 50) return alert("Not enough coins!");
+            balance -= 50; updateUI();
+            let btn = document.getElementById('spin-btn'); btn.disabled = true;
+            currentRotation += Math.floor(Math.random() * 360) + 1440;
+            document.getElementById('wheel-container').style.transform = `rotate(${currentRotation}deg)`;
             setTimeout(() => {
-                // Determine reward based on final degrees modulo 360
-                let normalizedDegree = currentRotation % 360;
-                let prize = 0;
-                if (normalizedDegree < 90) prize = 100;       // Green zone
-                else if (normalizedDegree < 180) prize = 0;    // Red zone
-                else if (normalizedDegree < 270) prize = 200;  // Blue zone
-                else prize = 50;                               // Yellow zone
-
-                balance += prize;
-                updateBalance();
-                document.getElementById('wheel-result').innerText = `You won ${prize} coins!`;
-                spinBtn.disabled = false;
-            }, 4000);
+                let prize = [100, 0, 200, 50][Math.floor((currentRotation % 360) / 90)];
+                balance += prize; updateUI();
+                document.getElementById('wheel-result').innerText = `Won ${prize} coins!`;
+                btn.disabled = false;
+            }, 3000);
         }
-    </script>
-</body>
-</html>
+
+        /* 3. COIN FLIP */
+        function playCoinFlip() {
+            let bet = parseInt(document.getElementById('bet-coin').value);
+            if(bet > balance || bet <= 0) return alert("Invalid bet!");
+            balance -= bet; updateUI();
+            let choice = document.getElementById('coin-choice').value;
+            let outcome = Math.random() < 0.5 ? 'heads' : 'tails';
+            let resBox = document.getElementById('coin-result');
+            if(choice === outcome) {
+                balance += bet * 2;
+                resBox.innerHTML = `<span style="color:#00cc44;">Result: ${outcome.toUpperCase()}! You Won!</span>`;
+            } else {
+                resBox.innerHTML = `<span style="color:#ff4444;">Result: ${outcome.toUpperCase()}! You Lost.</span>`;
+            }
+            updateUI();
+        }
+
+        /* 4. DICE ROLL */
+        function playDice() {
+            let bet = parseInt(document.getElementById('bet-dice').value);
+            if(bet > balance || bet <= 0) return alert("Invalid bet!");
+            balance -= bet; updateUI();
+            let roll = Math.floor(Math.random() * 6) + 1;
+            let resBox = document.getElementById('dice-result');
+            if(roll > 3) {
+                balance += bet * 2;
+                resBox.innerHTML = `<span style="color:#00cc44;">Rolled ${roll} - Winner!</span>`;
+            } else {
+                resBox.innerHTML = `<span style="color:#ff4444;">Rolled ${roll} - Lost.</span>`;
+            }
+            updateUI();
+        }
+
+        /* 5. SLOTS */
+        function playSlots() {
+            let bet = parseInt(document.getElementById('bet-slots').value);
+            if(bet > balance || bet <= 0) return alert("Invalid bet!");
+            balance -= bet; updateUI();
+            let s1 = Math.floor(Math.random() * 5);
+            let s2 = Math.floor(Math.random() * 5);
+            let s3 = Math.floor(Math.random() * 5);
+            document.getElementById('slots-display').innerText = `${s1} ${s2} ${s3}`;
+            let resBox = document.getElementById('slots-result');
+            if(s1 === s2 && s2 === s3) {
+                let win = bet * 10; balance += win;
+                resBox.innerHTML = `<span style="color:#00cc44;">JACKPOT! Won +${win}</span>`;
+            } else {
+                resBox.innerHTML = `<span style="color:#ff4444;">No match. Try again.</span>`;
+            }
+            updateUI();
+        }
+
+        /* 6. HIGHER LOWER */
+        let currentCard = 7;
+        function playHighLower(guess) {
+            let bet = parseInt(document.getElementById('bet-hl').value);
+            if(bet > balance || bet <= 0) return alert("Invalid bet!");
+            balance -= bet; updateUI();
+            let nextCard = Math.floor(Math.random() * 13) + 1;
+            document.getElementById('hl-card').innerText = nextCard;
+            let resBox = document.getElementById('hl-display');
+            if((guess === 'higher' && nextCard > currentCard) || (guess === 'lower' && nextCard < currentCard)) {
+                balance += Math.floor(bet * 1.8);
+                resBox.innerHTML = `Card: <span style="color:#ffcc00; font-size:20px;">${nextCard}</span> (<span style="color:#00cc44;">Won!</span>)`;
+            } else {
+                resBox.innerHTML = `Card: <span style="color:#ffcc00; font-size:20px;">${nextCard}</span> (<span style="color:#ff4444;">Lost</span>)`;
+            }
+            currentCard = nextCard;
+            updateUI();
+        }
+
+        /* 7. COLOR MATCH */
+        function playColor() {
+            let bet = parseInt(document.getElementById('bet-color').value);
+            if(bet > balance || bet <= 0) return alert("Invalid bet!");
+            balance -= bet; updateUI();
+            let colors = ['red', 'red', 'blue', 'blue', 'green'];
+            let winColor = colors[Math.floor(Math.random() * colors.length)];
+            let choice = document.getElementById('color-choice').value;
+            let resBox = document.getElementById('color-result');
+            if(choice === winColor) {
+                let multiplier = winColor === 'green' ? 4 : 2;
+                let win = bet * multiplier; balance += win;
+                resBox.innerHTML = `<span style="color:#00cc44;">Hit ${winColor.toUpperCase()}! Won +${win}</span>`;
+            } else {
+                resBox.innerHTML = `<span style="color:#ff4444;">Hit ${winColor.toUpperCase()}. You Lost.</span>`;
+            }
+            updateUI();
+        }
+
+        /* 8. PENALTY */
+        function playPenalty() {
+            let bet = parseInt(document.getElementById('bet-penalty').value);
+            if(bet > balance || bet <= 0) return alert("Invalid bet!");
+            balance -= bet; updateUI();
+            let spots = ['left', 'center', 'right'];
+            let keeper = spots[Math.floor(Math.random() * spots.length)];
+            let choice = document.getElementById('penalty-choice').value;
+            let resBox = document.getElementById('penalty-result');
+            if(choice !== keeper) {
+                balance += bet * 2;
+                resBox.innerHTML = `<span style="color:#00cc44;">Goal! Keeper dived ${keeper}. You Won!</span>`;
+            } else {
+                resBox.innerHTML = `<span style="color:#ff4444;">Saved! Keeper caught it. Lost.</span>`;
+            }
+            updateUI();
+        }
+
+        /* 9. MINI BLACKJACK */
+        function startBlackjack() {
+            let bet = parseInt(document.getElementById('bet-bj').value);
+            if(bet > balance || bet <= 0) return alert("Invalid bet!");
+            balance -= bet; updateUI();
+            let card1 = Math.floor(Math.random() * 10) + 2;
+            let card2 = Math.floor(Math.random() * 10) + 2;
+            let total = card1 + card2;
+            document.getElementById('bj-score').innerText = total;
+            let resBox = document.getElementById('bj-result');
+            if(total <= 21) {
+                let win = bet * 2; balance += win;
+                resBox.innerHTML = `Cards: ${card1} + ${card2} = <span style="color:#00
